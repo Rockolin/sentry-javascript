@@ -14,8 +14,10 @@ import {
 import type { Scope, SpanAttributes } from '@sentry/types';
 import {
   addNonEnumerableProperty,
+  flushSafelyWithTimeout,
   objectify,
   stripUrlQueryAndFragment,
+  vercelWaitUntil,
   winterCGRequestToRequestData,
 } from '@sentry/utils';
 import type { APIContext, MiddlewareResponseHandler } from 'astro';
@@ -188,6 +190,8 @@ async function instrumentRequest(
       } catch (e) {
         sendErrorToSentry(e);
         throw e;
+      } finally {
+        vercelWaitUntil(flushSafelyWithTimeout());
       }
       // TODO: flush if serverless (first extract function)
     },
